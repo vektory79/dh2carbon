@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,6 +22,8 @@ public class Dh2CarbonRelay implements MqttCallback {
     private CarbonFeeder carbonFeeder;
     private MqttClient mqttClient;
     private final MqttConnectOptions connOpts = new MqttConnectOptions();
+
+    private static final AtomicInteger watchCounter = new AtomicInteger(0);
 
     public Dh2CarbonRelay(String serverURI, String clientId, String user, String password, String carbonServer, int carbonPort) {
         try {
@@ -69,6 +72,11 @@ public class Dh2CarbonRelay implements MqttCallback {
 
         while (true) {
             Thread.sleep(1000);
+            int counter = watchCounter.incrementAndGet();
+            if (counter > 30) {
+                watchCounter.set(0);
+                relay.connectionLost(new WatchDogException());
+            }
         }
     }
 
@@ -119,6 +127,8 @@ public class Dh2CarbonRelay implements MqttCallback {
         if (!topic.equals("dh/request")) {
             return;
         }
+
+        watchCounter.set(0);
 
         LOGGER.fine(() -> "message arrived [" + topic + "]: " + new String(message.getPayload()) + "'");
 

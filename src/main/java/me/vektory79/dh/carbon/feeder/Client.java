@@ -35,7 +35,7 @@ public class Client implements AutoCloseable {
     }
 
     public void submit() {
-        if (socketOutput == null) {
+        if (socketOutput == null || socket.isOutputShutdown()) {
             connect();
         }
         while (true) {
@@ -75,7 +75,7 @@ public class Client implements AutoCloseable {
                 socketOutput = new DataOutputStream(socket.getOutputStream());
                 socketInput = new DataInputStream(socket.getInputStream());
             } catch (IOException e) {
-                LOGGER.log(Level.WARNING, e, () -> "Can't connect object");
+                LOGGER.log(Level.WARNING, e, () -> "Can't connect to Carbon: " + address + ":" + port);
                 close();
                 sleep();
                 continue;

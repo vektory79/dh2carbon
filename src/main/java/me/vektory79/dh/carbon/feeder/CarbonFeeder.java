@@ -71,7 +71,7 @@ public class CarbonFeeder implements AutoCloseable {
     }
 
     private void sendFormattedValue(String prefix, String value) {
-        System.out.println(prefix + " " + value);
+//        System.out.println(prefix + " " + value);
         getLocalClient().collect(prefix, value);
     }
 
